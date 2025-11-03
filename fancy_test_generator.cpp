@@ -22,7 +22,7 @@ std::string FORM = "A";
 std::string BANK = "arithmetic_problems.tex";
 
 // Filename for the created test
-std::string FILENAME = "simple_test.tex";
+std::string FILENAME = "fancy_test.tex";
 
 // Constraints on the problem choice.
 int NUM_PROBLEMS = 20; // The test must have 20 problems.
