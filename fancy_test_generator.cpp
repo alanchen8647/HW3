@@ -5,7 +5,12 @@
 #include <random>
 #include <map>
 #include <set>
-#include "problem.h"
+#include ".\BaseClass\problem.h"
+#include ".\SubClass\extendedSelector.h"
+#include ".\SubClass\testConstraint\topicConstraint.h"
+#include ".\SubClass\extendedFileReader.h"
+#include ".\SubClass\testConstraint\difficultyConstraint.h"
+#include ".\SubClass\fancyFormatter.h"
 
 // ****************************************************************************
 // Configuration details
@@ -28,6 +33,7 @@ std::string FILENAME = "fancy_test.tex";
 int NUM_PROBLEMS = 20; // The test must have 20 problems.
 int MIN_TOPIC = 3; // Each topic must be covered 
 int MAX_TOPIC = 7; // by 3-7 problems.
+std::set<std::string> TOPICS = {"addition", "subtraction", "multiplication", "division"};
 int MIN_DIFFICULTY = 65; // Total difficulty (using the difficulty defined 
 int MAX_DIFFICULTY = 75; // in the problem bank) must be 65-75.
 
@@ -38,99 +44,123 @@ std::string CONTENT_HEADER = "fancy_content_header.tex";
 // ****************************************************************************
 
 // Check whether a proposed test is valid according to the above constraints.
-bool valid(std::vector<Problem> test, std::set<std::string> topics) {
-    // Initialize metrics
-    int difficulty = 0;
-    std::map<std::string, int> topicCounts;
-    for (std::string topic : topics) {
-        topicCounts[topic] = 0;
-    }
+// bool valid(std::vector<Problem> test, std::set<std::string> topics) {
+//     // Initialize metrics
+//     int difficulty = 0;
+//     std::map<std::string, int> topicCounts;
+//     for (std::string topic : topics) {
+//         topicCounts[topic] = 0;
+//     }
 
-    // Calculate the metrics
-    for (Problem p : test) {
-        difficulty += p.getDifficulty();
-        topicCounts[p.getTopic()] += 1;
-    }
+//     // Calculate the metrics
+//     for (Problem p : test) {
+//         difficulty += p.getDifficulty();
+//         topicCounts[p.getTopic()] += 1;
+//     }
 
-    // Check the metrics
-    if (difficulty < MIN_DIFFICULTY || difficulty > MAX_DIFFICULTY) {
-        return false;
-    }
-    for (std::string topic : topics) {
-        int count = topicCounts[topic];
-        if (count < MIN_TOPIC || count > MAX_TOPIC) {
-            return false;
-        }
-    }
-    return true;
-}
+//     // Check the metrics
+//     if (difficulty < MIN_DIFFICULTY || difficulty > MAX_DIFFICULTY) {
+//         return false;
+//     }
+//     for (std::string topic : topics) {
+//         int count = topicCounts[topic];
+//         if (count < MIN_TOPIC || count > MAX_TOPIC) {
+//             return false;
+//         }
+//     }
+//     return true;
+// }
 
 // Given a bank of possible test problems, return randomly-chosen 
 // problems that form a valid test, according to the contraints above.
-std::vector<Problem> testProblems(std::vector<Problem> bank) {
-    // Determine the topics covered on the test
-    std::set<std::string> topics;
-    for (Problem p : bank) {
-        topics.insert(p.getTopic());
-    }
+// std::vector<Problem> testProblems(std::vector<Problem> bank) {
+//     // Determine the topics covered on the test
+//     std::set<std::string> topics;
+//     for (Problem p : bank) {
+//         topics.insert(p.getTopic());
+//     }
 
-    // Used for random generation
-    std::random_device rd;
-    std::mt19937 gen(rd());
+//     // Used for random generation
+//     std::random_device rd;
+//     std::mt19937 gen(rd());
 
-    while (true) {
-        std::shuffle(bank.begin(), bank.end(), gen);
-        std::vector<Problem> testProblems(bank.begin(), bank.begin() + NUM_PROBLEMS);
-        if (valid(testProblems, topics)) {
-            return testProblems;
-        }
-    }
-}
+//     while (true) {
+//         std::shuffle(bank.begin(), bank.end(), gen);
+//         std::vector<Problem> testProblems(bank.begin(), bank.begin() + NUM_PROBLEMS);
+//         if (valid(testProblems, topics)) {
+//             return testProblems;
+//         }
+//     }
+// }
 
 int main() {
-    // Read in problem list and convert to Problem objects
-    std::vector<Problem> bank = Problem::problemList(BANK);
+    auto topicConstraint = TopicConstraint(TOPICS, MIN_TOPIC, MAX_TOPIC);
+    auto difficultyConstraint = DifficultyConstraint(MIN_DIFFICULTY, MAX_DIFFICULTY);
 
-    // Open the file to write the test to
-    std::ofstream outputFile(FILENAME); 
-    if (!outputFile.is_open()) {
-        std::cerr << "Unable to open file." << std::endl;
-        return 1;
-    }
+    std::vector<TestConstraint*> constraints = {&topicConstraint, &difficultyConstraint};
 
-    // Generate the test problems
-    std::vector<Problem> test = testProblems(bank);
+    ExtendedFileReader fileReader;
+    std::vector<Problem*> bank = fileReader.readProblems(BANK);
 
-    // Write the tex header to the file
-    outputFile << "\\input{" << TEX_HEADER << "}\n";
+    ExtendedSelector selector(constraints);
+    std::vector<Problem*> test = selector.selectProblem(bank, NUM_PROBLEMS);
+    FancyFormatter formatter(
+        TEX_HEADER,
+        CONTENT_HEADER,
+        CLASS,
+        TERM,
+        EXAM,
+        TIME,
+        FORM,
+        TITLE,
+        NUM_PROBLEMS
+    );
+    formatter.formatTest(test, TITLE, FILENAME);
 
-    // Include the manually-entered information
-    outputFile << "\\newcommand{\\class}{" << CLASS << "}\n";
-    outputFile << "\\newcommand{\\term}{" << TERM << "}\n";
-    outputFile << "\\newcommand{\\examno}{" << EXAM << "}\n";
-    outputFile << "\\newcommand{\\dayeve}{" << TIME << "}\n";
-    outputFile << "\\newcommand{\\formletter}{" << FORM << "}\n";
-    outputFile << "\\newcommand{\\numproblems}{" << NUM_PROBLEMS << " }\n";
-    outputFile << "\\newcommand{\\testtitle}{" << TITLE << "}\n";
+    return 0;
+    // // Read in problem list and convert to Problem objects
+    // std::vector<Problem> bank = Problem::problemList(BANK);
 
-    // Write the content header to the file
-    outputFile << "\\input{" << CONTENT_HEADER << "}\n";
+    // // Open the file to write the test to
+    // std::ofstream outputFile(FILENAME); 
+    // if (!outputFile.is_open()) {
+    //     std::cerr << "Unable to open file." << std::endl;
+    //     return 1;
+    // }
 
-    // Write the problems to the file
-    int problem_number = 1;
-    for (Problem problem : test) {
-        if (problem_number % 2 == 1) {       // Start a new page before 
-            outputFile << "\\pagebreak\n\n"; // each odd-numbered problem
-        } else {                                 // Insert blank space before
-            outputFile << "\\vspace{350pt}\n\n"; // each even-numbered problem
-        }
-        outputFile << "\\item\\begin{tabular}[t]{p{5in} p{.3in} p{.8in}}\n";
-        outputFile << problem.getQuestion();
-        outputFile << "& & \\arabic{enumi}.\\hrulefill\n\\end{tabular}\n";
-        problem_number += 1;
-    }
+    // // Generate the test problems
+    // std::vector<Problem> test = testProblems(bank);
 
-    // End the file
-    outputFile << "\\end{enumerate}\n\\end{document}";
-    outputFile.close();
+    // // Write the tex header to the file
+    // outputFile << "\\input{" << TEX_HEADER << "}\n";
+
+    // // Include the manually-entered information
+    // outputFile << "\\newcommand{\\class}{" << CLASS << "}\n";
+    // outputFile << "\\newcommand{\\term}{" << TERM << "}\n";
+    // outputFile << "\\newcommand{\\examno}{" << EXAM << "}\n";
+    // outputFile << "\\newcommand{\\dayeve}{" << TIME << "}\n";
+    // outputFile << "\\newcommand{\\formletter}{" << FORM << "}\n";
+    // outputFile << "\\newcommand{\\numproblems}{" << NUM_PROBLEMS << " }\n";
+    // outputFile << "\\newcommand{\\testtitle}{" << TITLE << "}\n";
+
+    // // Write the content header to the file
+    // outputFile << "\\input{" << CONTENT_HEADER << "}\n";
+
+    // // Write the problems to the file
+    // int problem_number = 1;
+    // for (Problem problem : test) {
+    //     if (problem_number % 2 == 1) {       // Start a new page before 
+    //         outputFile << "\\pagebreak\n\n"; // each odd-numbered problem
+    //     } else {                                 // Insert blank space before
+    //         outputFile << "\\vspace{350pt}\n\n"; // each even-numbered problem
+    //     }
+    //     outputFile << "\\item\\begin{tabular}[t]{p{5in} p{.3in} p{.8in}}\n";
+    //     outputFile << problem.getQuestion();
+    //     outputFile << "& & \\arabic{enumi}.\\hrulefill\n\\end{tabular}\n";
+    //     problem_number += 1;
+    // }
+
+    // // End the file
+    // outputFile << "\\end{enumerate}\n\\end{document}";
+    // outputFile.close();
 }
