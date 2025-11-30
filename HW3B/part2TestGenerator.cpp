@@ -111,9 +111,9 @@ int main() {
 
     auto authorConstraint = AuthorConstraint(AUTHORS, 1, 2);
     auto topicConstraint = TopicConstraint(TOPICS, 1, 2);
-    auto LongConstraint = LongConstraint(NUM_LONG, NUM_LONG);
+    auto longConstraint = LongConstraint(NUM_LONG, NUM_LONG);
 
-    std::vector<TestConstraint*> constraints = {&authorConstraint, &topicConstraint, &LongConstraint};
+    std::vector<TestConstraint*> constraints = {&authorConstraint, &topicConstraint, &longConstraint};
     Part2ProblemSelector selector(constraints, NUM_LONG, NUM_LONG, 1, 2, 1, 2);
     std::vector<Problem*> test = selector.selectProblem(bank, NUM_PROBLEMS);
 
