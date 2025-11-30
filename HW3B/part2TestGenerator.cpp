@@ -7,7 +7,7 @@
 #include <set>
 #include ".\part2Problem.h"
 #include ".\part2ProblemSelector.h"
-#include ".\part2LengthConstraint.h"
+#include ".\part2LongConstraint.h"
 #include ".\part2authorConstraint.h"
 #include "..\SubClass\testConstraint\topicConstraint.h"
 #include ".\part2FileReader.h"
@@ -111,9 +111,9 @@ int main() {
 
     auto authorConstraint = AuthorConstraint(AUTHORS, 1, 2);
     auto topicConstraint = TopicConstraint(TOPICS, 1, 2);
-    auto lengthConstraint = LengthConstraint(NUM_LONG, NUM_LONG);
+    auto LongConstraint = LongConstraint(NUM_LONG, NUM_LONG);
 
-    std::vector<TestConstraint*> constraints = {&authorConstraint, &topicConstraint, &lengthConstraint};
+    std::vector<TestConstraint*> constraints = {&authorConstraint, &topicConstraint, &LongConstraint};
     Part2ProblemSelector selector(constraints, NUM_LONG, NUM_LONG, 1, 2, 1, 2);
     std::vector<Problem*> test = selector.selectProblem(bank, NUM_PROBLEMS);
 

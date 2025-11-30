@@ -1,11 +1,11 @@
-#ifndef PART2LENGTHCONSTRAINT_H
-#define PART2LENGTHCONSTRAINT_H
+#ifndef PART2LONGCONSTRAINT_H
+#define PART2LONGCONSTRAINT_H
 
 #include "../BaseClass/testConstraint.h"
 
-class LengthConstraint : public TestConstraint {
+class LongConstraint : public TestConstraint {
 public:
-    LengthConstraint(int minLong, int maxLong)
+    LongConstraint(int minLong, int maxLong)
         : minLong(minLong), maxLong(maxLong) {}
 
     bool valid(const std::vector<Problem*>& test) const override;

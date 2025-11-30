@@ -1,7 +1,7 @@
-#include "part2LengthConstraint.h"
+#include "part2LongConstraint.h"
 #include "part2Problem.h"
 
-bool LengthConstraint::valid(const std::vector<Problem*>& test) const {
+bool LongConstraint::valid(const std::vector<Problem*>& test) const {
     int longCount = 0;
 
     for (Problem* problem : test) {
